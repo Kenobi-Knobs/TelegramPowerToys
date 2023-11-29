@@ -1,0 +1,21 @@
+{
+  "name": "telegrampowertoys",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "d3": "^7.8.5",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "input": "^1.0.1",
+    "telegram": "^2.19.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js",
+    "grab": "node dataGraber.js"
+  },
+  "author": "@Kenobi_Knobs",
+  "license": "ISC"
+}
