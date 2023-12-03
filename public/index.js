@@ -1,7 +1,7 @@
 ﻿
 // get the width and height of the window
-const width = document.documentElement.clientWidth - 20;
-const height = document.documentElement.clientHeight - 20;
+const width = document.documentElement.clientWidth;
+const height = document.documentElement.clientHeight;
 
 const ARROW_FILL = '#838383';
 const STROKE_COLOR = '#999';
@@ -172,6 +172,7 @@ function zoomed() {
 
 //#region Graph and info manipulation
 function selectNode(d) {
+	
 	if (selected && selected.id === d.id) {
 		selected = null;
 		selectedlinkedNodes = [];
@@ -202,20 +203,41 @@ function selectNode(d) {
 	selected = d;
 	higlihtLinkedNodes(node);
 
+	let forwardedList = links.filter(link => link.source.id === d.id);
+	forwardedList = addDuplicatesCountToLinks(forwardedList);
+	forwardedList.sort((a, b) => b.count - a.count);
+
+	let whoForwardedList = links.filter(link => link.target.id === d.id);
+	whoForwardedList = addDuplicatesCountToLinks(whoForwardedList);
+	whoForwardedList.sort((a, b) => b.count - a.count);
+
 	const infoContainer = document.querySelector('.info-container');
 	const nodeName = document.querySelector('#node-name');
 	const nodeLink = document.querySelector('#node-link');
 	const nodeParticipants = document.querySelector('#node-participants');
 	const nodeDescription = document.querySelector('#node-description');
+	nodeDescription.innerHTML = '';
+	const nodeForwardedList = document.querySelector('#node-forwarded-list');
+	nodeForwardedList.innerHTML = '';
+	const nodeWhoForwardedList = document.querySelector('#node-who-forwarded-list');
+	nodeWhoForwardedList.innerHTML = '';
 	const link = 'https://t.me/' + d.username;
-	const nodeLinkText = `<a href='${link}' target='_blank'>${'@'+d.username}</a>`;
+	const nodeLinkText = `<span>🔗</span><a href='${link}' target='_blank'>${'@'+d.username}</a>`;
 	const nodeParticipantsText = "👤" + d.participantsCount;
 	const nodeDescriptionText = d.about || 'Опис відсутній';
-	
+	const forvardedListText = forwardedList.map(link => `<li>${link.target.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
+	const whoForvardedListText = whoForwardedList.map(link => `<li>${link.source.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
+
 	nodeName.innerHTML = d.name;
 	nodeLink.innerHTML = nodeLinkText;
 	nodeParticipants.innerHTML = nodeParticipantsText;
 	nodeDescription.innerHTML = nodeDescriptionText;
+	if (forwardedList.length !== 0) {
+		nodeForwardedList.innerHTML = `<div id='forwarded-list-header'>Репости ➡️</div>` + forvardedListText;
+	}
+	if (whoForwardedList.length !== 0) {
+		nodeWhoForwardedList.innerHTML = `<div id='who-forwarded-list-header'>Репостять ⬅️</div>` + whoForvardedListText;
+	}
 	infoContainer.hidden = false;
 }
 
@@ -259,5 +281,17 @@ function getCircleRadius(participantsCount) {
 		}
 	}
 	return 34;
-}
+};
+
+function addDuplicatesCountToLinks(links) {
+	return links.reduce((acc, curr) => {
+		const duplicate = acc.find(item => item.source.id === curr.source.id && item.target.id === curr.target.id);
+		if (duplicate) {
+			duplicate.count++;
+		} else {
+			acc.push({ ...curr, count: 1 });
+		}
+		return acc;
+	}, []);
+};
 //#endregion
