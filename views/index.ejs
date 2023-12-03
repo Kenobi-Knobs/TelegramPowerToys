@@ -1,13 +1,12 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset='UTF-8'>
+		<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 		<title>Telegram Relations Graph</title>
-		<script src="https://d3js.org/d3.v5.min.js"></script>
+		<script src='https://d3js.org/d3.v5.min.js'></script>
 		<style>
 			.links line {
-				stroke: #999;
 				stroke-opacity: 0.6;
 			}
 			
@@ -20,118 +19,210 @@
 				font-family: sans-serif;
 				font-size: 10px;
 			}
+
+			.info-container {
+				font-family: consolas;
+				font-size: 12px;
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 220px;
+				height: fit-content;
+				background-color: #f5f5f5;
+				z-index: 100;
+				padding: 10px 5px;
+				opacity: 90%;
+			}
 			
+			#node-description {
+				font-size: 12px;
+				width: 210px;
+				overflow-wrap: break-word;
+			}
+			
+			#node-name {
+				font-weight: bold;
+				font-size: 14px;
+				overflow-wrap: break-word;
+				margin-bottom: 5px;
+			}
+
+			#node-link,
+			#node-participants {
+				margin-bottom: 8px;
+			}
 			</style>
 	</head>
 	<body>
+		<div class='info-container' hidden>
+			<div id='node-name'></div>
+			<div id='node-link'></div>
+			<div id='node-participants'></div>
+			<div id='node-description'></div>
+		</div>
 		<script>
 			// get the nodes and links from the server
 			const nodes = <%- JSON.stringify(nodes) %>;
 			const links = <%- JSON.stringify(edges) %>;
-			let sortedNodes = nodes.sort((a, b) => b.participantsCount - a.participantsCount);
+
+			let selected = null;
+			let selectedlinkedNodes = [];
+			let selectedlinkedLinks = [];
+
 			
 			// get the width and height of the window
 			const width = document.documentElement.clientWidth - 20;
 			const height = document.documentElement.clientHeight - 20;
 
 			// create the svg
-			const svg = d3.select("body")
-				.append("svg")
-				.attr("width", width)
-				.attr("height", height)
-				.call(d3.zoom().scaleExtent([0.1, 10]).on("zoom", zoomed))
-				.append("g");
+			const svg = d3.select('body')
+				.append('svg')
+				.attr('width', width)
+				.attr('height', height)
+				.call(d3.zoom().scaleExtent([0.1, 10]).on('zoom', zoomed))
+				.append('g');
 
 			// create the simulation
 			const simulation = d3.forceSimulation()
-				.force("link", d3.forceLink().id(d => d.id))
-				.force("charge", d3.forceManyBody().strength(-1000))
-				.force("center", d3.forceCenter(width / 2, height / 2));
+				.force('link', d3.forceLink().id(d => d.id))
+				.force('charge', d3.forceManyBody().strength(-1000))
+				.force('center', d3.forceCenter(width / 2, height / 2));
 
 			// add the arrows
-			const arrow = svg.append("defs").selectAll("marker")
+			const arrow = svg.append('defs').selectAll('marker')
 				.data(links)
 				.enter()
-				.append("marker")
-				.attr("id", (d, i) => `arrowhead-${i}`)
-				.attr("viewBox", "0 0 10 10")
-				.attr("refX", (d) => getTargretRadius(d.target) + 12)
-				.attr("refY", 5)
-				.attr("markerWidth", 4)
-				.attr("markerHeight", 4)
-				.attr("orient", "auto")
-				.append("path")
-				.attr("d", "M 0 0 L 10 5 L 0 10 z")
-				.attr("class", "arrow")
-				.style("fill", "#838383");
+				.append('marker')
+				.attr('id', (d, i) => `arrowhead-${i}`)
+				.attr('viewBox', '0 0 10 10')
+				.attr('refX', (d) => getTargretRadius(d.target) + 12)
+				.attr('refY', 5)
+				.attr('markerWidth', 4)
+				.attr('markerHeight', 4)
+				.attr('orient', 'auto')
+				.append('path')
+				.attr('d', 'M 0 0 L 10 5 L 0 10 z')
+				.attr('class', 'arrow')
+				.style('fill', '#838383');
 
 			// add links to graph
-			const link = svg.append("g")
-				.attr("class", "links")
-				.selectAll("line")
+			const link = svg.append('g')
+				.attr('class', 'links')
+				.selectAll('line')
 				.data(links)
 				.enter()
-				.append("line")
-				.attr("stroke", "#aaa")
-				.attr("stroke-width", 2)
-				.attr("marker-end", (d, i) => `url(#arrowhead-${i})`);
+				.append('line')
+				.attr('stroke', '#999')
+				.attr('stroke-width', 2)
+				.attr('marker-end', (d, i) => `url(#arrowhead-${i})`);
 
 			// add nodes to graph
-			const node = svg.append("g")
-				.attr("class", "nodes")
-				.selectAll("circle")
+			const node = svg.append('g')
+				.attr('class', 'nodes')
+				.selectAll('circle')
 				.data(nodes)
 				.enter()
-				.append("circle")
-				.attr("r", d => getCircleradius(d.participantsCount))
-				.attr("fill", "#78a5fd")
-				.style("cursor", "pointer")
+				.append('circle')
+				.attr('r', d => getCircleRadius(d.participantsCount))
+				.attr('fill', '#78a5fd')
+				.style('cursor', 'pointer')
 				.call(d3.drag()
-					.on("start", dragstarted)
-					.on("drag", dragged)
-					.on("end", dragended));
+					.on('start', dragstarted)
+					.on('drag', dragged)
+					.on('end', dragended))
+				.on('click', selectNode);
 
 			// add labels to nodes
-			const label = svg.append("g")
-				.attr("class", "labels")
-				.selectAll("text")
+			const label = svg.append('g')
+				.attr('class', 'labels')
+				.selectAll('text')
 				.data(nodes)
 				.enter()
-				.append("text")
+				.append('text')
 				.text(d => d.name)
-				.attr("font-size", 8)
-				.attr("text-anchor", "middle")
-				.attr("alignment-baseline", "middle")
-				.style("font-weight", "bold")
-				.style("cursor", "pointer")
+				.attr('font-size', 8)
+				.attr('text-anchor', 'middle')
+				.attr('alignment-baseline', 'middle')
+				.style('font-weight', 'bold')
+				.style('cursor', 'pointer')
+				.on('click', selectNode)
 				.call(d3.drag()
-					.on("start", textdragstarted)
-					.on("drag", textdragged)
-					.on("end", textdragended));
+					.on('start', textdragstarted)
+					.on('drag', textdragged)
+					.on('end', textdragended));
 
 			// simulation setup
 			simulation.nodes(nodes)
-				.on("tick", ticked);
+				.on('tick', ticked);
 
-			simulation.force("link")
+			simulation.force('link')
 				.links(links);
 
 			// update simulation nodes, links
 			function ticked() {
 				link
-					.attr("x1", d => d.source.x)
-					.attr("y1", d => d.source.y)
-					.attr("x2", d => d.target.x)
-					.attr("y2", d => d.target.y);
+					.attr('x1', d => d.source.x)
+					.attr('y1', d => d.source.y)
+					.attr('x2', d => d.target.x)
+					.attr('y2', d => d.target.y);
 
 				node
-					.attr("cx", d => d.x)
-					.attr("cy", d => d.y);
+					.attr('cx', d => d.x)
+					.attr('cy', d => d.y);
 
 				label
-					.attr("x", d => d.x)
-					.attr("y", d => d.y);
+					.attr('x', d => d.x)
+					.attr('y', d => d.y);
 			};
+
+			// select node on click
+			function selectNode(d) {
+				if (selected && selected.id === d.id) {
+					selected = null;
+					selectedlinkedNodes = [];
+					selectedlinkedLinks = [];
+					svg.selectAll('circle').attr('fill', '#78a5fd');
+					svg.selectAll('line').attr('stroke', '#999');
+					const infoContainer = document.querySelector('.info-container');
+					infoContainer.hidden = true;
+					return;
+				}
+
+				if (selected) {
+					let node = svg.selectAll('circle').filter(node => node.id === selected.id);
+					node.attr('fill', '#78a5fd');
+				}
+
+				if (selectedlinkedNodes.length > 0) {
+					const linkedNodesIds = selectedlinkedNodes.map(node => node.id);
+					const linkedLinksIds = selectedlinkedLinks.map(link => link.index);
+					const linkedNodesSelection = svg.selectAll('circle').filter(node => linkedNodesIds.includes(node.id));
+					const linkedLinksSelection = svg.selectAll('line').filter(link => linkedLinksIds.includes(link.index));
+					linkedNodesSelection.attr('fill', '#78a5fd');
+					linkedLinksSelection.attr('stroke', '#aaa');
+				}
+
+				let node = svg.selectAll('circle').filter(node => node.id === d.id);
+				node.attr('fill', '#ff678b');
+				selected = d;
+				higlihtLinkedNodes(node);
+
+				const infoContainer = document.querySelector('.info-container');
+				const nodeName = document.querySelector('#node-name');
+				const nodeLink = document.querySelector('#node-link');
+				const nodeParticipants = document.querySelector('#node-participants');
+				const nodeDescription = document.querySelector('#node-description');
+				const link = 'https://t.me/' + d.username;
+				const nodeLinkText = `<a href='${link}' target='_blank'>${'@'+d.username}</a>`;
+				const nodeParticipantsText = "👤" + d.participantsCount;
+				const nodeDescriptionText = d.about || 'Опис відсутній';
+				
+				nodeName.innerHTML = d.name;
+				nodeLink.innerHTML = nodeLinkText;
+				nodeParticipants.innerHTML = nodeParticipantsText;
+				nodeDescription.innerHTML = nodeDescriptionText;
+				infoContainer.hidden = false;
+			}
 
 			function dragstarted(d) {
 				if (!d3.event.active) simulation.alphaTarget(0.3).restart();
@@ -170,15 +261,39 @@
 			}
 
 			function zoomed() {
-				svg.attr("transform", d3.event.transform);
+				svg.attr('transform', d3.event.transform);
 			};
 			
 			function getTargretRadius(target) {
 				const targetNode = nodes.find(node => node.id === target);
-				return getCircleradius(targetNode.participantsCount);
+				return getCircleRadius(targetNode.participantsCount);
 			};
 
-			function getCircleradius(participantsCount) {
+			function higlihtLinkedNodes(node) {
+				const linkedNodes = [];
+				const linkedLinks = [];
+				links.forEach(link => {
+					if (link.source.id === node.datum().id) {
+						linkedNodes.push(link.target);
+						linkedLinks.push(link);
+					}
+					if (link.target.id === node.datum().id) {
+						linkedNodes.push(link.source);
+						linkedLinks.push(link);
+					}
+				});
+				const linkedNodesIds = linkedNodes.map(node => node.id);
+				const linkedLinksIds = linkedLinks.map(link => link.index);
+				const linkedNodesSelection = svg.selectAll('circle').filter(node => linkedNodesIds.includes(node.id));
+				const linkedLinksSelection = svg.selectAll('line').filter(link => linkedLinksIds.includes(link.index));
+				linkedNodesSelection.attr('fill', '#fff85c');
+				linkedLinksSelection.attr('stroke', '#a6a000');
+
+				selectedlinkedNodes = linkedNodes;
+				selectedlinkedLinks = linkedLinks;
+			};
+
+			function getCircleRadius(participantsCount) {
 				if (participantsCount < 1000) return 8;
 				if (participantsCount < 3000) return 10;
 				if (participantsCount < 5000) return 12;
