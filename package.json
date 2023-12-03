@@ -13,8 +13,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node index.js",
-    "grab": "node dataGraber.js"
+    "start": "node app.js",
+    "grab": "node etl/etl.js"
   },
   "author": "@Kenobi_Knobs",
   "license": "ISC"
