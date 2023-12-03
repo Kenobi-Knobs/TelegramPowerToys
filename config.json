@@ -1,9 +1,9 @@
-﻿{
+{
 	"firstChanelUsername": "chanel_username",
 	"postAnalisisLimit": 100,
 	"deepAnalisisLimit": 100,
 	"nodesDataPath": "./data/nodes.json",
-	"edgesDataPath": "./data/edges.json",
+	"connectionsDataPath": "./data/edges.json",
 	"api": {
 		"apiId": 123456,
 		"apiHash": "1234567890abcdef1234567890abcdef",
