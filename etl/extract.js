@@ -2,6 +2,8 @@
 const { StringSession } = require('telegram/sessions');
 const fs = require('fs');
 
+const MAX_OFFSET_DATE = 2147483647;
+
 class Extract {
 	constructor() {
 		this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
@@ -103,7 +105,7 @@ class Extract {
 			new Api.messages.GetHistory({
 				peer: channelName,
 				offsetId: 0,
-				offsetDate: 2147483647,
+				offsetDate: MAX_OFFSET_DATE, 
 				addOffset: 0,
 				limit: this.config.postAnalisisLimit,
 				maxId: 0,
