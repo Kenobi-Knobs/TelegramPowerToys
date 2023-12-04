@@ -92,7 +92,11 @@ function createNode(svg, nodes) {
 		.style('cursor', 'pointer')
 		.on('click', selectNode)
 		.attr('r', d => getCircleRadius(d.participantsCount))
-		.attr('fill', NODE_FILL);
+		.attr('fill', NODE_FILL)
+		.call(d3.drag()
+			.on('start', dragstarted)
+			.on('drag', dragged)
+			.on('end', dragended));
 };
 
 function createLabel(svg, nodes) {
