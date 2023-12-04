@@ -1,5 +1,4 @@
-﻿
-// get the width and height of the window
+﻿// get the width and height of the window
 const width = document.documentElement.clientWidth;
 const height = document.documentElement.clientHeight;
 
@@ -24,12 +23,16 @@ let selected = null;
 let selectedlinkedNodes = [];
 let selectedlinkedLinks = [];
 
+const zoom_handler = d3.zoom()
+	.scaleExtent([0.1, 10])
+	.on("zoom", zoomed);
+
 // create the svg
 const svg = d3.select('body')
 	.append('svg')
 	.attr('width', width)
 	.attr('height', height)
-	.call(d3.zoom().scaleExtent([0.1, 10]).on('zoom', zoomed))
+	.call(zoom_handler)
 	.append('g');
 
 // create the simulation
@@ -42,6 +45,7 @@ const arrow = createMarker(svg, links);
 const link = createLink(svg, links);
 const node = createNode(svg, nodes);
 const label = createLabel(svg, nodes);
+const search = createSearch(nodes);
 
 // simulation setup
 simulation.nodes(nodes).on('tick', ticked);
@@ -64,7 +68,7 @@ function createMarker(svg, links) {
 		.attr('d', 'M 0 0 L 10 5 L 0 10 z')
 		.attr('class', 'arrow')
 		.style('fill', ARROW_FILL);
-}
+};
 
 function createLink(svg, links) {
 	return svg.append('g')
@@ -76,7 +80,7 @@ function createLink(svg, links) {
 		.attr('stroke', STROKE_COLOR)
 		.attr('stroke-width', 2)
 		.attr('marker-end', (d, i) => `url(#arrowhead-${i})`);
-}
+};
 
 function createNode(svg, nodes) {
 	return svg.append('g')
@@ -89,7 +93,7 @@ function createNode(svg, nodes) {
 		.on('click', selectNode)
 		.attr('r', d => getCircleRadius(d.participantsCount))
 		.attr('fill', NODE_FILL);
-}
+};
 
 function createLabel(svg, nodes) {
 	return svg.append('g')
@@ -109,7 +113,7 @@ function createLabel(svg, nodes) {
 			.on('start', textdragstarted)
 			.on('drag', textdragged)
 			.on('end', textdragended));
-}
+};
 
 function ticked() {
 	link
@@ -133,46 +137,45 @@ function dragstarted(d) {
 	if (!d3.event.active) simulation.alphaTarget(0.3).restart();
 	d.fx = d.x;
 	d.fy = d.y;
-}
+};
 
 function dragged(d) {
 	d.fx = d3.event.x;
 	d.fy = d3.event.y;
-}
+};
 
 function dragended(d) {
 	if (!d3.event.active) simulation.alphaTarget(0);
 	d.fx = d.x;
 	d.fy = d.y;
-}
+};
 
 function textdragstarted(d) {
 	if (!d3.event.active) simulation.alphaTarget(0.3).restart();
 	d.fx = d.x;
 	d.fy = d.y;
-}
+};
 
 function textdragged(d) {
 	d.fx = d3.event.x;
 	d.fy = d3.event.y;
 	d.x = d3.event.x;
 	d.y = d3.event.y;
-}
+};
 
 function textdragended(d) {
 	if (!d3.event.active) simulation.alphaTarget(0);
 	d.fx = d.x;
 	d.fy = d.y;
-}
+};
 
 function zoomed() {
-	svg.attr('transform', d3.event.transform);
+	svg.attr("transform", d3.event.transform);
 };
 //#endregion
 
 //#region Graph and info manipulation
 function selectNode(d) {
-	
 	if (selected && selected.id === d.id) {
 		selected = null;
 		selectedlinkedNodes = [];
@@ -221,6 +224,7 @@ function selectNode(d) {
 	nodeForwardedList.innerHTML = '';
 	const nodeWhoForwardedList = document.querySelector('#node-who-forwarded-list');
 	nodeWhoForwardedList.innerHTML = '';
+
 	const link = 'https://t.me/' + d.username;
 	const nodeLinkText = `<span>🔗</span><a href='${link}' target='_blank'>${'@'+d.username}</a>`;
 	const nodeParticipantsText = "👤" + d.participantsCount;
@@ -232,6 +236,7 @@ function selectNode(d) {
 	nodeLink.innerHTML = nodeLinkText;
 	nodeParticipants.innerHTML = nodeParticipantsText;
 	nodeDescription.innerHTML = nodeDescriptionText;
+
 	if (forwardedList.length !== 0) {
 		nodeForwardedList.innerHTML = `<div id='forwarded-list-header'>Репости ➡️</div>` + forvardedListText;
 	}
@@ -239,7 +244,7 @@ function selectNode(d) {
 		nodeWhoForwardedList.innerHTML = `<div id='who-forwarded-list-header'>Репостять ⬅️</div>` + whoForvardedListText;
 	}
 	infoContainer.hidden = false;
-}
+};
 
 function higlihtLinkedNodes(node) {
 	const linkedNodes = [];
@@ -265,6 +270,55 @@ function higlihtLinkedNodes(node) {
 
 	selectedlinkedNodes = linkedNodes;
 	selectedlinkedLinks = linkedLinks;
+};
+
+function createSearch(nodes) {
+	const searchInput = document.querySelector('#search');
+	const searchResults = document.querySelector('#search-results');
+
+	searchInput.addEventListener('input', () => {
+		const searchValue = searchInput.value.toLowerCase();
+		if (searchValue.length !== 0) {
+			const filteredNodes = nodes.filter(node => 
+				node.name.toLowerCase().includes(searchValue) || node.username.toLowerCase().includes(searchValue)
+			);
+			const searchResultsText = filteredNodes.map(node => `<li class='search-result-item' onclick='selectSearchNode(${node.id})'>${node.name} (👤${getParticipantsCountFormat(node.participantsCount)})</li>`).join('');
+			
+			searchResults.innerHTML = searchResultsText;
+			searchResults.hidden = false;
+		} else {
+			searchResults.innerHTML = '';
+			searchResults.hidden = true;
+		}
+	});
+};
+
+function selectSearchNode(id) {
+	const searchNode = svg.selectAll('circle').filter(node => node.id === id);
+	const node = searchNode.datum();
+	if (node.id !== selected?.id) {
+		selectNode(node);
+	}
+
+	zoomToNode(node);
+
+	const searchInput = document.querySelector('#search');
+	const searchResults = document.querySelector('#search-results');
+	searchInput.value = '';
+	searchResults.innerHTML = '';
+	searchResults.hidden = true;
+};
+
+function zoomToNode(node) {
+	const x = node.x;
+	const y = node.y;
+	const scale = 2;
+
+	svg.transition()
+		.duration(500)
+		.call(zoom_handler.translateTo, x, y)
+		.transition()
+		.call(zoom_handler.scaleTo, scale);
 };
 //#endregion
 
@@ -293,5 +347,15 @@ function addDuplicatesCountToLinks(links) {
 		}
 		return acc;
 	}, []);
+};
+
+function getParticipantsCountFormat(participantsCount) {
+	if (participantsCount < 1000) {
+		return participantsCount;
+	}
+	if (participantsCount < 1000000) {
+		return (participantsCount / 1000).toFixed(1) + 'K';
+	}
+	return (participantsCount / 1000000).toFixed(1) + 'M';
 };
 //#endregion

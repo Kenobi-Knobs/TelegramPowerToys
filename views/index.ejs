@@ -6,7 +6,7 @@
 		<title>Telegram Relations Graph</title>
 		<script src='https://d3js.org/d3.v5.min.js'></script>
 		<link href='index.css' rel='stylesheet' type='text/css'>
-	</head>
+			</head>
 	<body>
 		<div class='info-container' hidden>
 			<div id='node-name'></div>
@@ -15,6 +15,10 @@
 			<div id='node-description'></div>
 			<div id='node-forwarded-list'></div>
 			<div id='node-who-forwarded-list'></div>
+		</div>
+		<div id='search-container'>
+			<input id='search' type='text' placeholder='пошук'>
+			<div id='search-results' hidden></div>
 		</div>
 		<script>
 			const nodes = <%- JSON.stringify(nodes) %>;
