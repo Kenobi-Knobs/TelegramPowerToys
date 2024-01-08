@@ -23,17 +23,13 @@ let selected = null;
 let selectedlinkedNodes = [];
 let selectedlinkedLinks = [];
 
-const zoom_handler = d3.zoom()
-	.scaleExtent([0.1, 10])
-	.on("zoom", zoomed);
-
-// create the svg
+// create the svg and group
 const svg = d3.select('body')
 	.append('svg')
 	.attr('width', width)
 	.attr('height', height)
-	.call(zoom_handler)
-	.append('g');
+
+const group = svg.append('g');
 
 // create the simulation
 const simulation = d3.forceSimulation()
@@ -41,19 +37,31 @@ const simulation = d3.forceSimulation()
 	.force('charge', d3.forceManyBody().strength(-1000))
 	.force('center', d3.forceCenter(width / 2, height / 2));
 
-const arrow = createMarker(svg, links);
-const link = createLink(svg, links);
-const node = createNode(svg, nodes);
-const label = createLabel(svg, nodes);
+// create elements
+const arrow = createMarker(group, links);
+const link = createLink(group, links);
+const node = createNode(group, nodes);
+const label = createLabel(group, nodes);
 const search = createSearch(nodes);
+
+// zoom handling
+const zoom_handler = d3.zoom()
+	.scaleExtent([0.1, 10])
+
+svg.call(zoom_handler
+	.on('zoom', () => {
+		group.attr('transform', d3.event.transform);
+	})
+);
 
 // simulation setup
 simulation.nodes(nodes).on('tick', ticked);
 simulation.force('link').links(links);
+simulation.on('tick', ticked);
 
 //#region Create Graph elements
-function createMarker(svg, links) {
-	return svg.append('defs').selectAll('marker')
+function createMarker(group, links) {
+	return group.append('defs').selectAll('marker')
 		.data(links)
 		.enter()
 		.append('marker')
@@ -70,37 +78,36 @@ function createMarker(svg, links) {
 		.style('fill', ARROW_FILL);
 };
 
-function createLink(svg, links) {
-	return svg.append('g')
-		.attr('class', 'links')
-		.selectAll('line')
-		.data(links)
-		.enter()
-		.append('line')
+function createLink(group, links) {
+	return group.append('g')
 		.attr('stroke', STROKE_COLOR)
+		.attr('stroke-opacity', 0.6)
 		.attr('stroke-width', 2)
-		.attr('marker-end', (d, i) => `url(#arrowhead-${i})`);
+		.selectAll('line')
+			.data(links)
+			.join('line')
+			.attr('marker-end', (d, i) => `url(#arrowhead-${i})`);
 };
 
-function createNode(svg, nodes) {
-	return svg.append('g')
-		.attr('class', 'nodes')
+function createNode(group, nodes) {
+	return group.append('g')
+		.attr('stroke', '#fff')
+		.attr('stroke-width', 1.5)
 		.selectAll('circle')
-		.data(nodes)
-		.enter()
-		.append('circle')
-		.style('cursor', 'pointer')
-		.on('click', selectNode)
-		.attr('r', d => getCircleRadius(d.participantsCount))
-		.attr('fill', NODE_FILL)
-		.call(d3.drag()
-			.on('start', dragstarted)
-			.on('drag', dragged)
-			.on('end', dragended));
+			.data(nodes)
+			.join('circle')
+				.attr('r', d => getCircleRadius(d.participantsCount))
+				.attr('fill', NODE_FILL)
+				.style('cursor', 'pointer')
+				.call(d3.drag()
+					.on('start', dragstarted)
+					.on('drag', dragged)
+					.on('end', dragended))
+				.on('click', selectNode);
 };
 
-function createLabel(svg, nodes) {
-	return svg.append('g')
+function createLabel(group, nodes) {
+	return group.append('g')
 		.attr('class', 'labels')
 		.selectAll('text')
 		.data(nodes)
@@ -118,7 +125,9 @@ function createLabel(svg, nodes) {
 			.on('drag', textdragged)
 			.on('end', textdragended));
 };
+//#endregion
 
+//#region Drag and simulation handling
 function ticked() {
 	link
 		.attr('x1', d => d.source.x)
@@ -134,9 +143,7 @@ function ticked() {
 		.attr('x', d => d.x)
 		.attr('y', d => d.y);
 };
-//#endregion
 
-//#region Drag and zoom
 function dragstarted(d) {
 	if (!d3.event.active) simulation.alphaTarget(0.3).restart();
 	d.fx = d.x;
@@ -172,10 +179,6 @@ function textdragended(d) {
 	d.fx = d.x;
 	d.fy = d.y;
 };
-
-function zoomed() {
-	svg.attr("transform", d3.event.transform);
-};
 //#endregion
 
 //#region Graph and info manipulation
@@ -208,7 +211,7 @@ function selectNode(d) {
 	let node = svg.selectAll('circle').filter(node => node.id === d.id);
 	node.attr('fill', SELECTED_NODE_FILL);
 	selected = d;
-	higlihtLinkedNodes(node);
+	highlightLinkedNodes(node);
 
 	let forwardedList = links.filter(link => link.source.id === d.id);
 	forwardedList = addDuplicatesCountToLinks(forwardedList);
@@ -231,7 +234,7 @@ function selectNode(d) {
 
 	const link = 'https://t.me/' + d.username;
 	const nodeLinkText = `<span>🔗</span><a href='${link}' target='_blank'>${'@'+d.username}</a>`;
-	const nodeParticipantsText = "👤" + d.participantsCount;
+	const nodeParticipantsText = '👤' + d.participantsCount;
 	const nodeDescriptionText = d.about || 'Опис відсутній';
 	const forvardedListText = forwardedList.map(link => `<li>${link.target.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
 	const whoForvardedListText = whoForwardedList.map(link => `<li>${link.source.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
@@ -250,7 +253,7 @@ function selectNode(d) {
 	infoContainer.hidden = false;
 };
 
-function higlihtLinkedNodes(node) {
+function highlightLinkedNodes(node) {
 	const linkedNodes = [];
 	const linkedLinks = [];
 
@@ -318,11 +321,14 @@ function zoomToNode(node) {
 	const y = node.y;
 	const scale = 2;
 
+	let transform = d3.zoomIdentity
+		.translate(width / 2, height / 2)
+		.scale(scale)
+		.translate(-x, -y);
+
 	svg.transition()
 		.duration(500)
-		.call(zoom_handler.translateTo, x, y)
-		.transition()
-		.call(zoom_handler.scaleTo, scale);
+		.call(zoom_handler.transform, transform);
 };
 //#endregion
 
