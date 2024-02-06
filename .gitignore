@@ -1,1 +1,4 @@
 ﻿node_modules
+data/edges.json
+data/nodes.json
+data/posts.json

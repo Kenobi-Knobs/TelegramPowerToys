@@ -4,6 +4,7 @@
 	"deepAnalisisLimit": 100,
 	"nodesDataPath": "./data/nodes.json",
 	"connectionsDataPath": "./data/edges.json",
+	"postsDataPath": "./data/posts.json",
 	"api": {
 		"apiId": 123456,
 		"apiHash": "1234567890abcdef1234567890abcdef",
