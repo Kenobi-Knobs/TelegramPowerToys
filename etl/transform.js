@@ -2,6 +2,7 @@
 	constructor(data) {
 		this.nodes = data.nodes;
 		this.connections = data.connections;
+		this.posts = data.posts;
 	}
 
 	async execute() {
@@ -24,7 +25,7 @@
 		// sort nodes by participants count
 		this.nodes.sort((a, b) => b.participantsCount - a.participantsCount);
 
-		return {nodes: this.nodes, connections: this.connections};
+		return {nodes: this.nodes, connections: this.connections, posts: this.posts};
 	}
 }
 

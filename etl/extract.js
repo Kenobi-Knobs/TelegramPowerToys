@@ -21,20 +21,22 @@ class Extract {
 
 		let channelNodes = [];
 		let channelConnections = [];
+		let chanelPosts = [];
 
 		let firstChannelNode = await this.getChannelNode(this.config.firstChanelUsername);
 		if (!firstChannelNode.id) {
 			console.log('Channel private or not found');
-			return {nodes: channelNodes, connections: channelConnections};
+			return {nodes: channelNodes, connections: channelConnections, posts: chanelPosts};
 		}
 
-		let firstConnections = await this.getConnections(firstChannelNode.username);
+		let firstContext = await this.getChannelContext(firstChannelNode.username);
 
 		channelNodes.push(firstChannelNode);
-		channelConnections = [...firstConnections];
+		channelConnections = [...firstContext.connections];
+		chanelPosts = [...firstContext.posts];
 
 		// list of queued channels for analisys, only unique ids
-		let channelsforAnalisys = firstConnections.filter((item, index, self) =>
+		let channelsforAnalisys = firstContext.connections.filter((item, index, self) =>
 			index === self.findIndex((t) => (
 				t.target === item.target
 			))
@@ -57,14 +59,15 @@ class Extract {
 
 			console.log('target:', currentChannelNode.username, '| progress:', (loopCounter + 1) + '/' + this.config.deepAnalisisLimit);
 
-			let currentConnections = await this.getConnections(currentChannelNode.username);
+			let currentContext = await this.getChannelContext(currentChannelNode.username);
 
 			channelNodes.push(currentChannelNode);
-			channelConnections = [...channelConnections, ...currentConnections];
+			channelConnections = [...channelConnections, ...currentContext.connections];
+			chanelPosts = [...chanelPosts, ...currentContext.posts];
 
-			for (let i = 0; i < currentConnections.length; i++) {
-				if (!analisedChannels.includes(currentConnections[i].target)) {
-					channelsforAnalisys.push(currentConnections[i].target);
+			for (let i = 0; i < currentContext.connections.length; i++) {
+				if (!analisedChannels.includes(currentContext.connections[i].target)) {
+					channelsforAnalisys.push(currentContext.connections[i].target);
 				}
 			}
 
@@ -72,7 +75,7 @@ class Extract {
 			loopCounter++;
 		}
 
-		return {nodes: channelNodes, connections: channelConnections};
+		return {nodes: channelNodes, connections: channelConnections, posts: chanelPosts};
 	}
 
 	async getChannelNode(channelId) {
@@ -98,8 +101,9 @@ class Extract {
 		}
 	}
 
-	async getConnections(channelName) {
+	async getChannelContext(channelName) {
 		let connections = [];
+		let posts = [];
 
 		const channelHistory = await this.client.invoke(
 			new Api.messages.GetHistory({
@@ -126,14 +130,44 @@ class Extract {
 						channelPost: channelHistory.messages[i].fwdFrom.channelPost,
 						postAuthor: channelHistory.messages[i].fwdFrom.postAuthor,
 						message: channelHistory.messages[i].message,
-						type: 'forward',
 						lastUpdate: Date.now(),
 					});
 				}
+			} else if (channelHistory.messages[i].message) {
+				posts.push({
+					channelId: parseInt(channelHistory.messages[i].peerId.channelId),
+					channelName: channelName,
+					date: channelHistory.messages[i].date,
+					commentsEnabled: channelHistory.messages[i].replies ? true : false,
+					coments: channelHistory.messages[i].replies?.replies || 0,
+					messageText: channelHistory.messages[i].message,
+					views: channelHistory.messages[i].views,
+					forwards: channelHistory.messages[i].forwards,
+					reactionsEnabled: channelHistory.messages[i].reactions ? true : false,
+					reactions: this.getRactions(channelHistory.messages[i].reactions),
+				});
 			}
 		}
 
-		return connections;
+		return {connections: connections, posts: posts};
+	}
+
+	getRactions(reactions) {
+		let reactionsArray = [];
+
+		if (!reactions || reactions.results.length === 0) {
+			return reactionsArray;
+		}
+
+		let reactionsResults = reactions.results;
+		for (let i = 0; i < reactionsResults.length; i++) {
+			reactionsArray.push({
+				reaction: reactionsResults[i].reaction.emoticon,
+				count: reactionsResults[i].count,
+			});
+		}
+
+		return reactionsArray;
 	}
 }
 
