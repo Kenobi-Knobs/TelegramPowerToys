@@ -7,7 +7,7 @@ const Load = require('./load');
 	let start = Date.now();
 	let data = await extract.execute();
 	let end = Date.now();
-	
+
 	console.log('-------------------------------------------');
 	console.log('👌Finish extracting | time elapsed', getElapsedTime(start, end));
 	console.log('nodes:',data.nodes.length, 'connections:', data.connections.length, 'posts:', data.posts.length);

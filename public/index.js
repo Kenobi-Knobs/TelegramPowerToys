@@ -22,6 +22,7 @@ const PARTICIPANT_THRESHOLDS = [
 let selected = null;
 let selectedlinkedNodes = [];
 let selectedlinkedLinks = [];
+let layout;
 
 // create the svg and group
 const svg = d3.select('body')
@@ -227,15 +228,21 @@ function selectNode(d) {
 	const nodeParticipants = document.querySelector('#node-participants');
 	const nodeDescription = document.querySelector('#node-description');
 	nodeDescription.innerHTML = '';
+	const nodeLanguage = document.querySelector('#node-language');
+	nodeLanguage.innerHTML = '';
 	const nodeForwardedList = document.querySelector('#node-forwarded-list');
 	nodeForwardedList.innerHTML = '';
 	const nodeWhoForwardedList = document.querySelector('#node-who-forwarded-list');
 	nodeWhoForwardedList.innerHTML = '';
+	const wordCloud = document.querySelector('#word-cloud');
+	wordCloud.innerHTML = '';
 
 	const link = 'https://t.me/' + d.username;
 	const nodeLinkText = `<span>🔗</span><a href='${link}' target='_blank'>${'@'+d.username}</a>`;
 	const nodeParticipantsText = '👤' + d.participantsCount;
 	const nodeDescriptionText = d.about || 'Опис відсутній';
+	const nodeLanguageText = 'Мова: ' + d.language + ' ' + languageToEmoji(d.language)|| '';
+
 	const forvardedListText = forwardedList.map(link => `<li>${link.target.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
 	const whoForvardedListText = whoForwardedList.map(link => `<li>${link.source.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
 
@@ -243,6 +250,7 @@ function selectNode(d) {
 	nodeLink.innerHTML = nodeLinkText;
 	nodeParticipants.innerHTML = nodeParticipantsText;
 	nodeDescription.innerHTML = nodeDescriptionText;
+	nodeLanguage.innerHTML = nodeLanguageText;
 
 	if (forwardedList.length !== 0) {
 		nodeForwardedList.innerHTML = `<div id='forwarded-list-header'>Репости ➡️</div>` + forvardedListText;
@@ -250,8 +258,50 @@ function selectNode(d) {
 	if (whoForwardedList.length !== 0) {
 		nodeWhoForwardedList.innerHTML = `<div id='who-forwarded-list-header'>Репостять ⬅️</div>` + whoForvardedListText;
 	}
+	createWordCloud(d);
+
 	infoContainer.hidden = false;
 };
+
+function createWordCloud(node) {
+	let maxCount = node.wordmap.map(item => item.count).reduce((a, b) => Math.max(a, b));
+	let minCount = node.wordmap.map(item => item.count).reduce((a, b) => Math.min(a, b));
+
+	d3.select('#word-cloud').select('svg').remove();
+	layout = window.cloud()
+		.size([300, 300])
+		.words(node.wordmap.map(function(item) {
+			return {text: item.word, size: getSizeByCount(item.count, maxCount, minCount)};
+		}))
+		.padding(2)
+		.rotate(0)
+		.font("Impact")
+		.fontSize(function(node) { return node.size; })
+		.on("end", drawWordCloud);
+
+	layout.start();
+};
+
+function drawWordCloud(words) {
+	d3.select('#word-cloud').append("svg")
+		.attr("width", layout.size()[0])
+		.attr("height", layout.size()[1])
+		.append("g")
+		.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+		.selectAll("text")
+		.data(words)
+		.enter().append("text")
+		.style("font-size", function(d) { return d.size + "px"; })
+		.style("font-family", "Impact")
+		.attr("text-anchor", "middle")
+		.attr("transform", function(d) {
+			return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+		})
+		.attr('fill', function(d) {
+			return d3.schemeCategory10[Math.floor(Math.random() * 10)];
+		})
+		.text(function(d) { return d.text; });
+}
 
 function highlightLinkedNodes(node) {
 	const linkedNodes = [];
@@ -367,5 +417,30 @@ function getParticipantsCountFormat(participantsCount) {
 		return (participantsCount / 1000).toFixed(1) + 'K';
 	}
 	return (participantsCount / 1000000).toFixed(1) + 'M';
+};
+
+function languageToEmoji(language) {
+	if (language === 'unknown') {
+		return '';
+	} else if (language === 'uk') {
+		return '🇺🇦';
+	} else if (language === 'ru') {
+		return '🇷🇺';
+	} else if (language === 'en') {
+		return '🇺🇸';
+	} else if (language === 'pl') {
+		return '🇵🇱';
+	} else if (language === 'be') {
+		return '🇧🇾';
+	} else {
+		return '🌐';
+	}
+};
+
+function getSizeByCount(count, max, min) {
+	if (max === min) {
+		return 15;
+	}
+	return 15 + (count - min) / (max - min) * 10;
 };
 //#endregion
