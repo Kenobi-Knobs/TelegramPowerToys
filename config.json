@@ -2,6 +2,7 @@
 	"firstChanelUsername": "chanel_username",
 	"postAnalisisLimit": 100,
 	"deepAnalisisLimit": 100,
+	"wordmapLimit": 30,
 	"nodesDataPath": "./data/nodes.json",
 	"connectionsDataPath": "./data/edges.json",
 	"postsDataPath": "./data/posts.json",
