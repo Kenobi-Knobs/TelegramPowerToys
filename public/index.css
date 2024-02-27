@@ -55,10 +55,6 @@ text {
 	background-color: #8b8b8b;
 }
 
-#network-word-cloud {
-	margin-top: 20px;
-}
-
 #scan-date {
 	margin-bottom: 5px;
 	font-weight: bold;
@@ -115,7 +111,7 @@ text {
 	margin-bottom: 3px;
 }
 
-#word-cloud {
+#word-cloud, #network-word-cloud {
 	margin-top: 20px;
 	border-top: 1px solid black;
 }

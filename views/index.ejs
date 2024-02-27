@@ -5,17 +5,17 @@
 		<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 		<title>Telegram Relations Graph</title>
 		<script src='https://d3js.org/d3.v5.min.js'></script>
-		<script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.7/build/d3.layout.cloud.min.js"></script>
+		<script src='https://cdn.jsdelivr.net/npm/d3-cloud@1.2.7/build/d3.layout.cloud.min.js'></script>
 		<link href='index.css' rel='stylesheet' type='text/css'>
 	</head>
 	<body>
-		<div class="network-info-container">
+		<div class='network-info-container'>
 			<div id='scan-date'></div>
 			<div id='nodes-count'></div>
 			<div id='connections-count'></div>
 			<div id='posts-count'></div>
 			<div id='languages'></div>
-			<div id='network-word-cloud'></div>
+			<div id='network-word-cloud' class='word-cloud'></div>
 		</div>
 		<div class='info-container' hidden>
 			<div id='node-name'></div>
@@ -25,7 +25,7 @@
 			<div id='node-language'></div>
 			<div id='node-forwarded-list'></div>
 			<div id='node-who-forwarded-list'></div>
-			<div id='word-cloud'></div>
+			<div id='word-cloud' class='word-cloud'></div>
 		</div>
 		<div id='search-container'>
 			<input id='search' type='text' placeholder='пошук'>
@@ -38,7 +38,7 @@
 		</script>
 		<script src='index.js'></script>
 		<script type='module' defer>
-			import { polyfillCountryFlagEmojis } from "https://cdn.skypack.dev/country-flag-emoji-polyfill";
+			import { polyfillCountryFlagEmojis } from 'https://cdn.skypack.dev/country-flag-emoji-polyfill';
 			polyfillCountryFlagEmojis();
 		</script>
 	</body>

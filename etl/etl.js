@@ -19,16 +19,16 @@ const Load = require('./load');
 	data = await transform.execute();
 	end = Date.now();
 	
-	console.log("-------------------------------------------");
-	console.log("👌Finish transforming | time elapsed", getElapsedTime(start, end));
-	console.log("nodes:",data.nodes.length, "connections:", data.connections.length , "posts:", data.posts.length);
+	console.log('-------------------------------------------');
+	console.log('👌Finish transforming | time elapsed', getElapsedTime(start, end));
+	console.log('nodes:',data.nodes.length, 'connections:', data.connections.length , 'posts:', data.posts.length);
 
 	const load = new Load(data);
 	start = Date.now();
 	await load.execute();
 	end = Date.now();
 
-	console.log("-------------------------------------------");
+	console.log('-------------------------------------------');
 	console.log('👌Finish loading | time elapsed', getElapsedTime(start, end));
 
 	process.exit()

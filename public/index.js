@@ -244,7 +244,7 @@ function selectNode(d) {
 	const nodeLinkText = `<span>🔗</span><a href='${link}' target='_blank'>${'@'+d.username}</a>`;
 	const nodeParticipantsText = '👤' + d.participantsCount;
 	const nodeDescriptionText = d.about || 'Опис відсутній';
-	const nodeLanguageText = 'Мова: ' + d.language + ' ' + languageToEmoji(d.language)|| '';
+	const nodeLanguageText = '<b>Мова:</b> ' + d.language + ' ' + languageToEmoji(d.language)|| '';
 
 	const forvardedListText = forwardedList.map(link => `<li>${link.target.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
 	const whoForvardedListText = whoForwardedList.map(link => `<li>${link.source.name} ${link.count > 1 ? '(' + link.count + 'x)' : ''}</li>`).join('');
@@ -279,9 +279,9 @@ function createWordCloud(wordmap, wordCloudSelector) {
 		.words(words)
 		.padding(2)
 		.rotate(0)
-		.font("Impact")
+		.font('Impact')
 		.fontSize(function(node) { return node.size; })
-		.on("end", drawWordCloud.bind(null, words, wordCloudSelector));
+		.on('end', drawWordCloud.bind(null, words, wordCloudSelector));
 
 	layout.start();
 };
@@ -290,21 +290,20 @@ function removeWordClouds() {
 	d3.select('.word-cloud').selectAll('svg').remove();
 };
 
-
 function drawWordCloud(words, selector) {
-	d3.select(selector).append("svg")
-		.attr("width", layout.size()[0])
-		.attr("height", layout.size()[1])
-		.append("g")
-		.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
-		.selectAll("text")
+	d3.select(selector).append('svg')
+		.attr('width', layout.size()[0])
+		.attr('height', layout.size()[1])
+		.append('g')
+		.attr('transform', 'translate(' + layout.size()[0] / 2 + ',' + layout.size()[1] / 2 + ')')
+		.selectAll('text')
 		.data(words)
-		.enter().append("text")
-		.style("font-size", function(d) { return d.size + "px"; })
-		.style("font-family", "Impact")
-		.attr("text-anchor", "middle")
-		.attr("transform", function(d) {
-			return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+		.enter().append('text')
+		.style('font-size', function(d) { return d.size + 'px'; })
+		.style('font-family', 'Impact')
+		.attr('text-anchor', 'middle')
+		.attr('transform', function(d) {
+			return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
 		})
 		.attr('fill', function(d) {
 			return d3.schemeCategory10[Math.floor(Math.random() * 10)];
