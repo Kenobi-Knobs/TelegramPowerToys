@@ -197,11 +197,11 @@ function selectNode(d) {
 	}
 
 	if (selected) {
-		const networkInfo = document.querySelector('.network-info-container');
-		networkInfo.hidden = true;
 		let node = svg.selectAll('circle').filter(node => node.id === selected.id);
 		node.attr('fill', NODE_FILL);
 	}
+
+	hideNetworkInfo();
 
 	if (selectedlinkedNodes.length > 0) {
 		const linkedNodesIds = selectedlinkedNodes.map(node => node.id);
@@ -261,32 +261,38 @@ function selectNode(d) {
 	if (whoForwardedList.length !== 0) {
 		nodeWhoForwardedList.innerHTML = `<div id='who-forwarded-list-header'>Репостять ⬅️</div>` + whoForvardedListText;
 	}
-	createWordCloud(d);
+	createWordCloud(d.wordmap, '#word-cloud');
 
 	infoContainer.hidden = false;
 };
 
-function createWordCloud(node) {
-	let maxCount = node.wordmap.map(item => item.count).reduce((a, b) => Math.max(a, b));
-	let minCount = node.wordmap.map(item => item.count).reduce((a, b) => Math.min(a, b));
+function createWordCloud(wordmap, wordCloudSelector) {
+	let maxCount = wordmap.map(item => item.count).reduce((a, b) => Math.max(a, b));
+	let minCount = wordmap.map(item => item.count).reduce((a, b) => Math.min(a, b));
+	let words = wordmap.map(function(item) {
+		return {text: item.word, size: getSizeByCount(item.count, maxCount, minCount)};
+	})
 
-	d3.select('#word-cloud').select('svg').remove();
-	layout = window.cloud()
+	removeWordClouds();
+	layout = d3.layout.cloud()
 		.size([300, 300])
-		.words(node.wordmap.map(function(item) {
-			return {text: item.word, size: getSizeByCount(item.count, maxCount, minCount)};
-		}))
+		.words(words)
 		.padding(2)
 		.rotate(0)
 		.font("Impact")
 		.fontSize(function(node) { return node.size; })
-		.on("end", drawWordCloud);
+		.on("end", drawWordCloud.bind(null, words, wordCloudSelector));
 
 	layout.start();
 };
 
-function drawWordCloud(words) {
-	d3.select('#word-cloud').append("svg")
+function removeWordClouds() {
+	d3.select('.word-cloud').selectAll('svg').remove();
+};
+
+
+function drawWordCloud(words, selector) {
+	d3.select(selector).append("svg")
 		.attr("width", layout.size()[0])
 		.attr("height", layout.size()[1])
 		.append("g")
@@ -438,12 +444,11 @@ function showNetworkInfo() {
 	const connectionsCount = document.querySelector('#connections-count');
 	const postsCount = document.querySelector('#posts-count');
 	const languages = document.querySelector('#languages');
-	const wordCloud = document.querySelector('#word-cloud');
 
 	scanDate.innerHTML = 'Дата сканування мережі: ' + network.scanDate;
-	nodesCount.innerHTML = 'Кількість каналів: ' + network.nodesCount;
-	connectionsCount.innerHTML = 'Кількість зв\'язків: ' + network.connections;
-	postsCount.innerHTML = 'Кількість постів: ' + network.postsCount;
+	nodesCount.innerHTML = 'Каналів: ' + network.nodesCount;
+	connectionsCount.innerHTML = 'Зв\'язків: ' + network.connections;
+	postsCount.innerHTML = 'Постів: ' + network.postsCount;
 
 	const languagesContainer = network.languages.map(language => {
 		const languageCode = language.code;
@@ -451,9 +456,14 @@ function showNetworkInfo() {
 	}).join('');
 	
 	languages.innerHTML = `<div id='languages-header'>Мови:</div>` + `<div id='languages-container'>` + languagesContainer + `</div>`;
-	wordCloud.innerHTML = '';
+	createWordCloud(network.wordmap, '#network-word-cloud');
 
 	networkInfo.hidden = false;
+}
+
+function hideNetworkInfo() {
+	const networkInfo = document.querySelector('.network-info-container');
+	networkInfo.hidden = true;
 }
 //#endregion
 

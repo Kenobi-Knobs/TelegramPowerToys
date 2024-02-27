@@ -55,12 +55,16 @@ text {
 	background-color: #8b8b8b;
 }
 
+#network-word-cloud {
+	margin-top: 20px;
+}
+
 #scan-date {
 	margin-bottom: 5px;
 	font-weight: bold;
 }
 
-div#languages-header {
+#languages-header {
 	font-weight: bold;
 	margin-top: 5px;
 	margin-bottom: 2px;
