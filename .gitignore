@@ -1,5 +1,5 @@
 ﻿node_modules
-data/edges.json
+data/connections.json
 data/nodes.json
 data/posts.json
 data/network.json

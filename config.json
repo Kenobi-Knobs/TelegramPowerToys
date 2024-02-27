@@ -3,10 +3,7 @@
 	"postAnalisisLimit": 100,
 	"deepAnalisisLimit": 100,
 	"wordmapLimit": 30,
-	"nodesDataPath": "./data/nodes.json",
-	"connectionsDataPath": "./data/edges.json",
-	"postsDataPath": "./data/posts.json",
-	"networkDataPath": "./data/network.json",
+	"dataFolder": "./data",
 	"api": {
 		"apiId": 123456,
 		"apiHash": "1234567890abcdef1234567890abcdef",
