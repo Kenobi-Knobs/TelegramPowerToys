@@ -21,7 +21,7 @@ text {
 	font-size: 10px;
 }
 
-.info-container {
+.info-container, .network-info-container {
 	font-family: consolas;
 	font-size: 12px;
 	position: absolute;
@@ -36,6 +36,34 @@ text {
 	opacity: 90%;
 	overflow-y: overlay;
 	overflow-x: hidden;
+}
+
+#languages-container {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.language-item {
+	margin-right: 5px;
+	cursor: pointer;
+	padding: 2px;
+	border: 1px solid black;
+	border-radius: 5px 
+}
+
+.selected {
+	background-color: #8b8b8b;
+}
+
+#scan-date {
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+
+div#languages-header {
+	font-weight: bold;
+	margin-top: 5px;
+	margin-bottom: 2px;
 }
 
 .info-container::-webkit-scrollbar {

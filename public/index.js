@@ -8,6 +8,7 @@ const NODE_FILL = '#78a5fd';
 const SELECTED_NODE_FILL = '#ff678b';
 const LINKED_NODE_FILL = '#fff85c';
 const LINKED_LINK_COLOR = '#a6a000';
+const LANGUAGE_SELECT_COLOR = '#ff4c4c';
 const PARTICIPANT_THRESHOLDS = [
 	{ limit: 1000, radius: 8 },
 	{ limit: 3000, radius: 10 },
@@ -22,6 +23,8 @@ const PARTICIPANT_THRESHOLDS = [
 let selected = null;
 let selectedlinkedNodes = [];
 let selectedlinkedLinks = [];
+let selectedLanguage = null;
+let selectedLanguageNodes = [];
 let layout;
 
 // create the svg and group
@@ -59,6 +62,9 @@ svg.call(zoom_handler
 simulation.nodes(nodes).on('tick', ticked);
 simulation.force('link').links(links);
 simulation.on('tick', ticked);
+
+// show network info
+showNetworkInfo();
 
 //#region Create Graph elements
 function createMarker(group, links) {
@@ -184,18 +190,15 @@ function textdragended(d) {
 
 //#region Graph and info manipulation
 function selectNode(d) {
+	resetLanguageSelection()
 	if (selected && selected.id === d.id) {
-		selected = null;
-		selectedlinkedNodes = [];
-		selectedlinkedLinks = [];
-		svg.selectAll('circle').attr('fill', NODE_FILL);
-		svg.selectAll('line').attr('stroke', STROKE_COLOR);
-		const infoContainer = document.querySelector('.info-container');
-		infoContainer.hidden = true;
+		showNetworkInfo();
 		return;
 	}
 
 	if (selected) {
+		const networkInfo = document.querySelector('.network-info-container');
+		networkInfo.hidden = true;
 		let node = svg.selectAll('circle').filter(node => node.id === selected.id);
 		node.attr('fill', NODE_FILL);
 	}
@@ -329,6 +332,44 @@ function highlightLinkedNodes(node) {
 	selectedlinkedLinks = linkedLinks;
 };
 
+function highlightNodesByLanguage(language) {
+	resetLanguageButtons();
+	if (selectedLanguage === language) {
+		resetLanguageSelection();
+		return;
+	}
+	resetLanguageSelection();
+	const nodesByLanguage = nodes.filter(node => node.language === language);
+	const nodesByLanguageIds = nodesByLanguage.map(node => node.id);
+	const nodesByLanguageSelection = svg.selectAll('circle').filter(node => nodesByLanguageIds.includes(node.id));
+	nodesByLanguageSelection.attr('fill', LANGUAGE_SELECT_COLOR);
+	selectedLanguage = language;
+	selectedLanguageNodes = nodesByLanguage;
+	const languageButtons = document.querySelectorAll('.language-item');
+	languageButtons.forEach(button => {
+		if (button.getAttribute('data') === language) {
+			button.classList.add('selected');
+		}
+	});
+};
+
+function resetLanguageSelection() {
+	if (selectedLanguage) {
+		const nodesByLanguageIds = selectedLanguageNodes.map(node => node.id);
+		const nodesByLanguageSelection = svg.selectAll('circle').filter(node => nodesByLanguageIds.includes(node.id));
+		nodesByLanguageSelection.attr('fill', NODE_FILL);
+		selectedLanguage = null;
+		selectedLanguageNodes = [];
+	}
+};
+
+function resetLanguageButtons() {
+	const languageButtons = document.querySelectorAll('.language-item');
+	languageButtons.forEach(button => 
+		button.classList.remove('selected')
+	);
+}
+
 function createSearch(nodes) {
 	const searchInput = document.querySelector('#search');
 	const searchResults = document.querySelector('#search-results');
@@ -380,6 +421,40 @@ function zoomToNode(node) {
 		.duration(500)
 		.call(zoom_handler.transform, transform);
 };
+
+function showNetworkInfo() {
+	selected = null;
+	selectedlinkedNodes = [];
+	selectedlinkedLinks = [];
+	svg.selectAll('circle').attr('fill', NODE_FILL);
+	svg.selectAll('line').attr('stroke', STROKE_COLOR);
+	const infoContainer = document.querySelector('.info-container');
+	infoContainer.hidden = true;
+
+	const networkInfo = document.querySelector('.network-info-container');
+
+	const scanDate = document.querySelector('#scan-date');
+	const nodesCount = document.querySelector('#nodes-count');
+	const connectionsCount = document.querySelector('#connections-count');
+	const postsCount = document.querySelector('#posts-count');
+	const languages = document.querySelector('#languages');
+	const wordCloud = document.querySelector('#word-cloud');
+
+	scanDate.innerHTML = 'Дата сканування мережі: ' + network.scanDate;
+	nodesCount.innerHTML = 'Кількість каналів: ' + network.nodesCount;
+	connectionsCount.innerHTML = 'Кількість зв\'язків: ' + network.connections;
+	postsCount.innerHTML = 'Кількість постів: ' + network.postsCount;
+
+	const languagesContainer = network.languages.map(language => {
+		const languageCode = language.code;
+		return `<div class='language-item' data='${languageCode}' onclick=highlightNodesByLanguage('${languageCode}')>${languageToEmoji(languageCode)} ${languageCode}: ${language.count}</div>`;
+	}).join('');
+	
+	languages.innerHTML = `<div id='languages-header'>Мови:</div>` + `<div id='languages-container'>` + languagesContainer + `</div>`;
+	wordCloud.innerHTML = '';
+
+	networkInfo.hidden = false;
+}
 //#endregion
 
 //#region utils

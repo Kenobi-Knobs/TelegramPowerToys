@@ -9,6 +9,7 @@ class Transform {
 		this.nodes = data.nodes;
 		this.connections = data.connections;
 		this.posts = data.posts;
+		this.network;
 	}
 
 	async execute() {
@@ -66,10 +67,21 @@ class Transform {
 			return node;
 		});
 
+		// generate wordmap for each node
 		this.nodes = this.nodes.map((node) => {
 			node.wordmap = this.generateWordmap(node.text, this.config.wordmapLimit);
 			return node;
 		});
+
+		// generate network object
+		this.network = {
+			nodesCount: this.nodes.length,
+			connections: this.connections.length,
+			postsCount: this.posts.length,
+			languages: this.getLanguagesCounters(this.nodes),
+			wordmap: this.generateWordmap(this.nodes.map((node) => node.text).join(' '), this.config.wordmapLimit),
+			scanDate: new Date().toDateString(),
+		};
 
 		// remove node.text
 		this.nodes = this.nodes.map((item) => {
@@ -77,7 +89,20 @@ class Transform {
 			return item;
 		});
 
-		return {nodes: this.nodes, connections: this.connections, posts: this.posts};
+		return {nodes: this.nodes, connections: this.connections, posts: this.posts, network: this.network};
+	}
+
+	getLanguagesCounters(nodes) {
+		let languages = [];
+		nodes.forEach((node) => {
+			let language = languages.find((item) => item.code === node.language);
+			if (language) {
+				language.count++;
+			} else {
+				languages.push({code: node.language, count: 1});
+			}
+		});
+		return languages;
 	}
 
 	generateWordmap(text, limit = 20) {
