@@ -17,7 +17,8 @@
   "devDependencies": {},
   "scripts": {
     "start": "node app.js",
-    "grab": "node etl/etl.js"
+    "grab": "node etl/etl.js",
+    "generate-session": "node generate-session.js"
   },
   "author": "@Kenobi_Knobs",
   "license": "ISC"

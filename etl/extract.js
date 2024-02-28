@@ -9,7 +9,7 @@ class Extract {
 		this.config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
 		const apiId = this.config.api.apiId;
 		const apiHash = this.config.api.apiHash;
-		const session = new StringSession(this.config.api.sesionString);
+		const session = new StringSession(this.config.api.sessionString);
 		this.client = new TelegramClient(session, apiId, apiHash, {});
 	}
 

@@ -1,8 +1,15 @@
 ﻿const Extract = require('./extract');
 const Transform = require('./transform');
 const Load = require('./load');
+const fs = require('fs');
 
 (async function run() {
+	const config = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
+	if (!config.api.sessionString) {
+		console.log('🚨 Please set session string, run < npm run generate-session >');
+		process.exit();
+	}
+
 	const extract = new Extract();
 	let start = Date.now();
 	let data = await extract.execute();

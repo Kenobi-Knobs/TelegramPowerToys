@@ -7,6 +7,6 @@
 	"api": {
 		"apiId": 123456,
 		"apiHash": "1234567890abcdef1234567890abcdef",
-		"sesionString": "generated_session_string"
+		"sessionString": ""
 	}
 }
