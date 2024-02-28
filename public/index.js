@@ -509,7 +509,7 @@ function languageToEmoji(language) {
 	} else if (language === 'uk') {
 		return '🇺🇦';
 	} else if (language === 'ru') {
-		return '🇷🇺';
+		return '🤮';
 	} else if (language === 'en') {
 		return '🇺🇸';
 	} else if (language === 'pl') {
