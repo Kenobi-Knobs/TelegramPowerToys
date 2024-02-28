@@ -2,7 +2,7 @@
 
 This project is designed for the analysis and visualization of channel networks in Telegram. It provides the ability to extract data about channels, their connections to other channels, and posts from these channels. Additionally, the project allows for the processing of this data using various methods to construct an interactive graph of the Telegram channels network.
 
-![alt text](https://i.ibb.co/QDS8KLC/preview.png)
+![alt text](preview.png)
 
 ## Table of Contents
 
