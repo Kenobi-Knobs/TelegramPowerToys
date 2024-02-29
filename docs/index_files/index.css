@@ -1,0 +1,145 @@
+﻿* {
+	font-family: 'Twemoji Country Flags', sans-serif;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.links line {
+	stroke-opacity: 0.6;
+}
+
+.nodes circle {
+	stroke: #fff;
+	stroke-width: 1.5px;
+}
+
+text {
+	font-size: 10px;
+}
+
+.info-container, .network-info-container {
+	font-family: consolas;
+	font-size: 12px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 320px;
+	height: fit-content;
+	max-height: 600px;
+	background-color: #f5f5f5;
+	z-index: 100;
+	padding: 10px 6px;
+	opacity: 90%;
+	overflow-y: overlay;
+	overflow-x: hidden;
+}
+
+#languages-container {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.language-item {
+	margin-right: 5px;
+	cursor: pointer;
+	padding: 2px;
+	border: 1px solid black;
+	border-radius: 5px 
+}
+
+.selected {
+	background-color: #8b8b8b;
+}
+
+#scan-date {
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+
+#languages-header {
+	font-weight: bold;
+	margin-top: 5px;
+	margin-bottom: 2px;
+}
+
+.info-container::-webkit-scrollbar {
+	width: 4px;
+	background: transparent;
+}
+
+.info-container::-webkit-scrollbar-thumb {
+	background: #a2a2a2;
+	border-radius: 10px;
+}
+
+.info-container::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+#node-description {
+	font-size: 12px;
+	width: 210px;
+	overflow-wrap: break-word;
+	margin-bottom: 5px;
+	color: #505050;
+}
+
+#node-name {
+	font-weight: bold;
+	font-size: 14px;
+	overflow-wrap: break-word;
+	margin-bottom: 5px;
+}
+
+#node-link,
+#node-participants {
+	margin-bottom: 8px;
+}
+
+#node-forwarded-list, #node-language {
+	margin-bottom: 5px;
+}
+
+#forwarded-list-header,
+#who-forwarded-list-header,
+#node-participants {
+	font-weight: bold;
+	margin-bottom: 3px;
+}
+
+#word-cloud, #network-word-cloud {
+	margin-top: 20px;
+	border-top: 1px solid black;
+}
+
+#search-container {
+	font-family: consolas;
+	font-size: 12px;
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: fit-content;
+	background-color: #f5f5f5;
+	z-index: 100;
+	padding: 6px 12px;
+	opacity: 90%;
+}
+
+#search-container input {
+	width: 98%;
+	margin-bottom: 6px;
+}
+
+.search-result-item {
+	font-size: 12px;
+	margin-bottom: 2px;
+	cursor: pointer;
+}
+
+.search-result-item:hover {
+	text-decoration: underline;
+}
