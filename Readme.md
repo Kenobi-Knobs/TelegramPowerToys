@@ -4,6 +4,8 @@ This project is designed for the analysis and visualization of channel networks 
 
 ![alt text](preview.png)
 
+Check out the [Demo](https://kenobi-knobs.github.io/TelegramPowerToys/) which contains 100 channels 👀
+
 ## Table of Contents
 
 - [Installation](#installation)
